@@ -1,5 +1,8 @@
 # AWS Profiler
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
+
 A command-line tool to list all AWS profiles, check their credential status, and refresh IAM user access keys.
 
 ## Features
@@ -14,15 +17,16 @@ A command-line tool to list all AWS profiles, check their credential status, and
 - 📊 Displays results in a formatted table
 - 📈 Provides summary statistics
 
+## Prerequisites
+
+- Python 3.8, 3.9, 3.10, 3.11, or 3.12
+- AWS CLI configured (v2 recommended for SSO support)
+- Required Python packages:
+  - `boto3 >= 1.26.0`
+  - `tabulate >= 0.9.0`
+  - `python-dateutil`
+
 ## Installation
-
-### Install from source
-
-```bash
-pip install -e .
-```
-
-### Install from PyPI (when published)
 
 ```bash
 pip install aws-profiler
@@ -83,12 +87,6 @@ Automatically refresh credentials for ALL IAM users and SSO profiles:
 
 ```bash
 aws-profiler --refresh --all
-```
-
-Or simply:
-
-```bash
-aws-profiler --refresh
 ```
 
 This will:
@@ -225,12 +223,6 @@ When refreshing credentials, the old credentials are automatically backed up to:
 
 Backup files are created with restricted permissions (600) for security.
 
-## Requirements
-
-- Python 3.8+
-- AWS credentials configured in `~/.aws/credentials` or `~/.aws/config`
-- For refresh functionality: IAM permissions to create and optionally delete access keys
-
 ## IAM Permissions Required for Refresh
 
 To use the refresh functionality, your IAM user needs these permissions:
@@ -251,6 +243,50 @@ To use the refresh functionality, your IAM user needs these permissions:
   ]
 }
 ```
+
+## Troubleshooting
+
+### "No credentials found" error
+
+Ensure AWS credentials exist in `~/.aws/credentials` or set environment variables:
+```bash
+export AWS_ACCESS_KEY_ID=your_key
+export AWS_SECRET_ACCESS_KEY=your_secret
+```
+
+### "Access Denied" when refreshing
+
+Verify your IAM user has the required permissions listed above. Check your IAM policy allows `iam:CreateAccessKey` and `iam:ListAccessKeys`.
+
+### SSO login fails
+
+- Ensure AWS CLI v2 is installed: `aws --version`
+- Verify SSO configuration in `~/.aws/config`:
+  ```ini
+  [profile sso-profile]
+  sso_start_url = https://your-domain.awsapps.com/start
+  sso_region = us-east-1
+  sso_account_id = 123456789012
+  sso_role_name = YourRoleName
+  ```
+- Clear cached SSO tokens: `rm -rf ~/.aws/sso/cache/`
+
+### "Maximum number of access keys exceeded"
+
+AWS limits IAM users to 2 access keys. Delete an old key manually or use the `--delete` flag when refreshing.
+
+### Backup directory permission errors
+
+Ensure `~/.aws/backups/` directory exists and is writable. The tool will attempt to create it automatically with 700 permissions.
+
+## Security Considerations
+
+- ⚠️ Backup files contain plaintext credentials - secure these files appropriately
+- 🔒 Backup files are created with 600 permissions (owner read/write only)
+- 🗝️ Old access keys remain in AWS backups - consider rotating or deleting them
+- 🔐 For production workloads, consider using AWS Secrets Manager or Systems Manager Parameter Store
+- 🛡️ Regularly audit and rotate your access keys
+- 📝 Use IAM roles with temporary credentials when possible instead of long-term keys
 
 ## License
 
