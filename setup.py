@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="aws-profiler",
-    version="1.0.0",
+    version="1.1.0",
     author="AgentGino",
     author_email="himakar@qwik.tools",
     description="A CLI tool to list AWS profiles and check their credential status",
